@@ -1,0 +1,49 @@
+MODEL:
+  PRETRAIN_CHOICE: 'imagenet'
+  PRETRAIN_PATH: 'weights/vit_base_p16_224-4e355ebd.pth' # 确保你有这个权重文件
+  METRIC_LOSS_TYPE: 'triplet'
+  IF_LABELSMOOTH: 'on'  # 分类任务建议开启 Label Smooth
+  IF_WITH_CENTER: 'no'
+  NAME: 'transformer'
+  NO_MARGIN: True
+  DEVICE_ID: ('0')
+  TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS'
+  STRIDE_SIZE: [16, 16]
+  MIE: True       # 开启模态嵌入 (RGB vs SAR)
+  MIE_COE: 3.0
+  SSE: False      # <--- 关闭船只尺寸嵌入，非常重要
+  PAIR: False
+  USE_PGD: True
+
+INPUT:
+  SIZE_TRAIN: [128, 256] # 调整为 (width, height) 以兼容 RandomCrop
+  SIZE_TEST: [128, 256]
+  PROB: 0.5
+  RE_PROB: 0.5
+  PADDING: 10
+  PIXEL_MEAN: [0.5, 0.5, 0.5] # 根据你的数据分布调整，或者保留 ImageNet 均值
+  PIXEL_STD: [0.5, 0.5, 0.5]
+
+DATASETS:
+  NAMES: ('AircraftShip')  # <--- 使用新注册的数据集名
+  ROOT_DIR: ('./data')     # 数据存放根目录
+
+DATALOADER:
+  SAMPLER: 'softmax_triplet'
+  NUM_INSTANCE: 4
+  NUM_WORKERS: 8
+
+SOLVER:
+  OPTIMIZER_NAME: 'SGD'
+  MAX_EPOCHS: 120
+  BASE_LR: 0.005
+  IMS_PER_BATCH: 64
+  # ... 其他参数保持默认或根据显存调整 ...
+
+TEST:
+  EVAL: True
+  IMS_PER_BATCH: 128
+  RE_RANKING: False
+  FEAT_NORM: 'yes'
+
+OUTPUT_DIR: './logs/aircraft_ship_transoss'
